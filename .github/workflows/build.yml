@@ -1,0 +1,40 @@
+name: Build APK from AAB
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
+    - name: Download Bundletool
+      run: |
+        curl -L -o bundletool.jar https://github.com/google/bundletool/releases/download/1.15.6/bundletool-all-1.15.6.jar
+
+    - name: Build APKs
+      run: |
+        java -jar bundletool.jar build-apks \
+        --bundle=app.aab \
+        --output=app.apks \
+        --mode=universal \
+        --overwrite
+
+    - name: Extract APK
+      run: |
+        unzip app.apks -d output
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: apk-output
+        path: output/
